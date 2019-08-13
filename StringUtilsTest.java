@@ -1,4 +1,4 @@
-package com.greensill.string;
+package com.osotnikov.string;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
