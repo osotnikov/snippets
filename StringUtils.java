@@ -1,4 +1,4 @@
-package com.greensill.string;
+package com.osotnikov.string;
 
 public class StringUtils {
 
