@@ -1,0 +1,53 @@
+package com.osotnikov.test.jms.sqs.localstack;
+
+import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSClient;
+
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.testcontainers.containers.localstack.LocalStackContainer;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.testcontainers.containers.localstack.LocalStackContainer.Service.SQS;
+
+@ExtendWith(SpringExtension.class)
+@SpringBootTest(classes = {Application.class})
+public class JmsSenderServiceLocalstackIT {
+
+	private static final long RECEIVE_TIMEOUT = 60_000L;
+
+	@ClassRule
+	public static LocalStackContainer localstack = new LocalStackContainer().withServices(SQS);
+
+	@Autowired
+	private JmsTemplate jmsTemplate;
+
+	@Autowired
+	private OfferRepository offerRepository;
+
+	private DtoMockerAndAsserter dtoMockerAndAsserter = new DtoMockerAndAsserter();
+
+	AmazonSQS sqs;
+	String mainQueueURL;
+	
+	@Test
+	public void sendInvoiceSuccess() {
+
+		try {
+			sqs = AmazonSQSClient
+					.builder()
+					.withEndpointConfiguration(localstack.getEndpointConfiguration(SQS))
+					.withCredentials(localstack.getDefaultCredentialsProvider()).build();
+			mainQueueURL = sqs.createQueue("Main").getQueueUrl();
+			Assertions.assertTrue(sqs.listQueues().getQueueUrls().contains(mainQueueURL));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+}
